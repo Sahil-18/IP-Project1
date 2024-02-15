@@ -1,16 +1,15 @@
-#!/usr/bin/env python  
-  
 from http.server import BaseHTTPRequestHandler, HTTPServer  
-import os  
-  
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):  
 
   #handle GET command  
   def do_GET(self):  
-    #rootdir = 'F:\new\server' #file location  
+    file_path = "../dataFiles/computer1SendFiles/" + self.path
     try:  
-        f = open(self.path,  'rb') #open requested file  
+        f = open(file_path,  'rb') #open requested file  
         #send code 200 response  
         self.send_response(200)    
         #send header first  
@@ -28,7 +27,7 @@ def run():
   
   #ip and port of servr  
   #by default http server port is 80  
-  server_address = ('10.154.51.139', 8889)  
+  server_address = (os.getenv('COMP1_IP'), int(os.getenv('PORT')))  
   httpd = HTTPServer(server_address, HTTPRequestHandler)  
   print('http server is running...')  
   httpd.serve_forever()  

@@ -57,11 +57,16 @@
 #         request_and_save('B_10kB_from_server.txt', 'GET', '/B_10kB')
 
 from hyper import HTTP20Connection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 def request_and_save(connection, file_path):
-    connection.request('GET', '/' + file_path)
+    stream = connection.request('GET', '/' + file_path)
     print("Requested", file_path)
     response = connection.get_response()
+    print(response.headers)
     print("Received", file_path)
     with open(file_path, 'wb') as file:
         file.write(response.read())
@@ -69,7 +74,7 @@ def request_and_save(connection, file_path):
 
 def make_request():
     # Make an HTTP/2.0 request to the server for the specified file
-    connection = HTTP20Connection('localhost', port=8889)
+    connection = HTTP20Connection(os.getenv('COMP1_IP'), port=int(os.getenv('PORT')))
 
     for _ in range(1):
         print("Requesting A_10kB")

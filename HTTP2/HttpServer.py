@@ -2,11 +2,14 @@ import socket
 import h2.config
 import h2.connection
 import h2.events
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 def send_response(conn, event, path):
     stream_id = event.stream_id
     filePath = "../dataFiles/computer1SendFiles/" + path
-    print(filePath)
     with open(filePath, 'rb') as file:
         response_data = file.read()
 
@@ -19,11 +22,38 @@ def send_response(conn, event, path):
             ('content-type', 'text/plain'),
         ],
     )
-    conn.send_data(
-        stream_id=stream_id,
-        data=response_data,
-        end_stream=True
-    )
+    # conn.send_data(
+    #     stream_id=stream_id,
+    #     data=response_data,
+    #     end_stream=True
+    # )
+    print("Max outbound frame size: ", conn.max_outbound_frame_size)
+    print("Local flow control window: ", conn.local_flow_control_window(stream_id))
+    chunk_size = min(conn.max_outbound_frame_size, conn.local_flow_control_window(stream_id))
+    # chunk_size = 1024
+    i = 0
+    while response_data:
+        chunk = response_data[:chunk_size]
+        response_data = response_data[chunk_size:]
+        if not response_data:
+            conn.send_data(
+                stream_id=stream_id,
+                data=chunk,
+                end_stream=True)
+            break
+        conn.send_data(
+            stream_id=stream_id,
+            data=chunk,
+            end_stream=False)
+        print("Sent chunk  ", i)
+        i += 1
+        print("Max outbound frame size: ", conn.max_outbound_frame_size)
+        print("Local flow control window: ", conn.local_flow_control_window(stream_id))
+        # if local flow control window is 0, wait for it to be updated
+        while conn.local_flow_control_window(stream_id) < conn.max_outbound_frame_size:
+            pass
+        chunk_size = min(conn.max_outbound_frame_size, conn.local_flow_control_window(stream_id))
+    conn.end_stream(stream_id)
     
 
 def handle(conn):
@@ -43,7 +73,9 @@ def handle(conn):
                     if header[0] == ':path':
                         # path is /file_name extract file_name
                         path = header[1][1:]
+                print("Received request for ", path)
                 send_response(h2_conn, event, path)
+                print("Sent response for ", path)
                         
         conn.sendall(h2_conn.data_to_send())
 
@@ -52,8 +84,8 @@ def main():
     try:
         sock = socket.socket()
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('localhost', 8889))
-        print("Server started")
+        sock.bind((os.getenv('COMP1_IP'), int(os.getenv('PORT'))))
+        print("Server started at ", os.getenv('COMP1_IP'), ":", os.getenv('PORT'), "...")
         while True:
             sock.listen(5)
             conn, addr = sock.accept()

@@ -2,8 +2,11 @@ import http.client
 import sys  
 from statistics import mean, stdev
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-conn = http.client.HTTPConnection('10.152.16.75', 8889)  
+conn = http.client.HTTPConnection(os.getenv('COMP1_IP'), int(os.getenv('PORT')))  
  
 def downloadfile(file:str, repeat: int, size: int):
     sizes = []
