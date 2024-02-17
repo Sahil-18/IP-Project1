@@ -52,10 +52,11 @@
 #         request_and_save('B_1kB_from_server.txt', 'GET', '/B_1kB')
 
 #     # Experiment 2
-#     for _ in range(100):
-#         request_and_save('A_100kB_from_server.txt', 'GET', '/A_100kB')
-#         request_and_save('B_10kB_from_server.txt', 'GET', '/B_10kB')
+    # for _ in range(100):
+    #     request_and_save('A_100kB_from_server.txt', 'GET', '/A_100kB')
+    #     request_and_save('B_10kB_from_server.txt', 'GET', '/B_10kB')
 
+# Experiment 2
 from hyper import HTTP20Connection
 from dotenv import load_dotenv
 import os
@@ -67,34 +68,32 @@ def request_and_save(connection, file_path):
     print("Requested", file_path)
     response = connection.get_response()
     print(response.headers)
-    print("Received", file_path)
-    with open(file_path, 'wb') as file:
-        file.write(response.read())
-    print("Saved", file_path)
+    for chunk in response.stream():
+        print(chunk)
 
 def make_request():
     # Make an HTTP/2.0 request to the server for the specified file
     connection = HTTP20Connection(os.getenv('COMP1_IP'), port=int(os.getenv('PORT')))
 
-    for _ in range(1):
-        print("Requesting A_10kB")
-        request_and_save(connection, 'A_10kB')
-        print("Received A_10kB")
+    # for _ in range(1):
+    #     print("Requesting A_10kB")
+    #     request_and_save(connection, 'A_10kB')
+    #     print("Received A_10kB")
     
     for _ in range(1):
         print("Requesting A_100kB")
         request_and_save(connection, 'A_100kB')
         print("Received A_100kB")
 
-    for _ in range(1):
-        print("Requesting A_1MB")
-        request_and_save(connection, 'A_1MB')
-        print("Received A_1MB")
+    # for _ in range(1):
+    #     print("Requesting A_1MB")
+    #     request_and_save(connection, 'A_1MB')
+    #     print("Received A_1MB")
 
-    for _ in range(1):
-        print("Requesting A_10MB")
-        request_and_save(connection, 'A_10MB')
-        print("Received A_10MB")
+    # for _ in range(1):
+    #     print("Requesting A_10MB")
+    #     request_and_save(connection, 'A_10MB')
+    #     print("Received A_10MB")
 
     connection.close()
 

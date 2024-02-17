@@ -3,11 +3,14 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+SERVER_ADDRESS = (os.getenv('COMP2_IP'), int(os.getenv('PORT')))
+FILE_FOLDER = os.getenv("B_FILES_LOCATION")
+
 class HTTPRequestHandler(BaseHTTPRequestHandler):  
 
   #handle GET command  
   def do_GET(self):  
-    file_path = "../dataFiles/computer1SendFiles/" + self.path
+    file_path = FILE_FOLDER + self.path
     try:  
         f = open(file_path,  'rb') #open requested file  
         #send code 200 response  
@@ -27,8 +30,7 @@ def run():
   
   #ip and port of servr  
   #by default http server port is 80  
-  server_address = (os.getenv('COMP1_IP'), int(os.getenv('PORT')))  
-  httpd = HTTPServer(server_address, HTTPRequestHandler)  
+  httpd = HTTPServer(SERVER_ADDRESS, HTTPRequestHandler)  
   print('http server is running...')  
   httpd.serve_forever()  
 
