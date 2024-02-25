@@ -66,15 +66,26 @@ load_dotenv()
 def request_and_save(connection, file_path):
     stream = connection.request('GET', '/' + file_path)
     print("Requested", file_path)
-    response = connection.get_response()
+    # Accept stream of data from server
+    response = connection.get_response(stream)
     print(response.headers)
-    for chunk in response.stream():
-        print(chunk)
+    print(response.read())
+
+    # response = connection.get_response()
+    # print(response.headers)
+    # response_data = None
+    # for chunk in response.stream():
+    #     if chunk is not None:
+    #         response_data += chunk
+    #     else:
+    #         break
+    # with open(file_path, 'wb') as file:
+    #     file.write(response_data)
 
 def make_request():
     # Make an HTTP/2.0 request to the server for the specified file
     connection = HTTP20Connection(os.getenv('COMP1_IP'), port=int(os.getenv('PORT')))
-
+    print(connection)
     # for _ in range(1):
     #     print("Requesting A_10kB")
     #     request_and_save(connection, 'A_10kB')

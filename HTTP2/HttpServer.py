@@ -7,54 +7,42 @@ import os
 
 load_dotenv()
 
-def send_response(conn, event, path):
+def send_response(conn, h2_conn, event, path):
     stream_id = event.stream_id
-    filePath = "../dataFiles/computer1SendFiles/" + path
-    with open(filePath, 'rb') as file:
-        response_data = file.read()
-
-    conn.send_headers(
-        stream_id=stream_id,
+    # conn is the socket connection, h2_conn is the h2 connection, event is the request event and path is the file name
+    # send the file with the name path from the computer1SendFiles folder to the client using the h2 connection and the socket connection conn in chunks
+    with open("../dataFiles/computer1SendFiles/" + path, 'rb') as file:
+        response = file.read()
+    
+    h2_conn.send_headers(
+        stream_id=event.stream_id,
         headers=[
             (':status', '200'),
-            ('server', 'basic-h2-server/1.0'),
-            ('content-length', str(len(response_data))),
-            ('content-type', 'text/plain'),
+            ('content-length', str(len(response))),
         ],
     )
-    # conn.send_data(
-    #     stream_id=stream_id,
-    #     data=response_data,
-    #     end_stream=True
-    # )
-    print("Max outbound frame size: ", conn.max_outbound_frame_size)
-    print("Local flow control window: ", conn.local_flow_control_window(stream_id))
-    chunk_size = min(conn.max_outbound_frame_size, conn.local_flow_control_window(stream_id))
-    # chunk_size = 1024
-    i = 0
-    while response_data:
-        chunk = response_data[:chunk_size]
-        response_data = response_data[chunk_size:]
-        if not response_data:
-            conn.send_data(
-                stream_id=stream_id,
-                data=chunk,
-                end_stream=True)
-            break
-        conn.send_data(
-            stream_id=stream_id,
-            data=chunk,
-            end_stream=False)
-        print("Sent chunk  ", i)
-        i += 1
-        print("Max outbound frame size: ", conn.max_outbound_frame_size)
-        print("Local flow control window: ", conn.local_flow_control_window(stream_id))
-        # if local flow control window is 0, wait for it to be updated
-        while conn.local_flow_control_window(stream_id) < conn.max_outbound_frame_size:
-            pass
-        chunk_size = min(conn.max_outbound_frame_size, conn.local_flow_control_window(stream_id))
-    conn.end_stream(stream_id)
-    
+    # Cannot send the whole file at once, so send in chunks
+    # chunk size is the minimum of flow control window and the frame size
+    # flow control window is the minimum of the connection flow control window and the stream flow control window
+
+    # get the flow control window for the connection and the stream
+    connection_flow_control_window = h2_conn.local_flow_control_window(stream_id=stream_id)
+    stream_flow_control_window = h2_conn.local_flow_control_window(stream_id=event.stream_id)
+
+    # get the frame size
+    frame_size = h2_conn.max_outbound_frame_size
+    # send the file in chunks
+    while len(response) > 0:
+        # get the chunk size
+        chunk_size = min(min(connection_flow_control_window, stream_flow_control_window), frame_size)
+        # send the chunk
+        h2_conn.send_data(event.stream_id, response[:chunk_size])
+        conn.sendall(h2_conn.data_to_send())
+        response = response[chunk_size:]
+
+    # send the end of stream
+    h2_conn.end_stream(event.stream_id)
+    conn.sendall(h2_conn.data_to_send())
 
 def handle(conn):
     config = h2.config.H2Configuration(client_side=False, header_encoding='utf-8')
@@ -74,7 +62,7 @@ def handle(conn):
                         # path is /file_name extract file_name
                         path = header[1][1:]
                 print("Received request for ", path)
-                send_response(h2_conn, event, path)
+                send_response(conn, h2_conn, event, path)
                 print("Sent response for ", path)
                         
         conn.sendall(h2_conn.data_to_send())

@@ -1,0 +1,5 @@
+dotenv
+grpcio
+grpcio-tools
+http
+libtorrent
