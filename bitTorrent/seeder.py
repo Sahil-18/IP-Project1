@@ -1,45 +1,41 @@
-import libtorrent as lt
+# Write a bittorrent seeder
+# The leecher is on different machine
+# The seeder is on different machine
+# Seeder needs to send multiple files to the leecher when requested
+# The leecher will request the file from the seeder
+
+
+import sys
 import time
-import os
-from dotenv import load_dotenv
-load_dotenv()
+import libtorrent as lt
 
-def createTorrent(save_path):
-    fs = lt.file_storage()
-    # add the file stored at the path ../../dataFiles/computer1SendFiles/A_10kB
-    A_file_path = os.getenv("A_FILES_LOCATION") + "A_10kB"
-    fs.add_file(fs, A_file_path)
-    t = lt.create_torrent(fs)
-    t.add_tracker("udp://tracker.openbittorrent.com:80")
-    t.set_piece_length(16 * 1024)
+#Create torrent
+fs = lt.file_storage()
+lt.add_files(fs, "./A_1MB")
+t = lt.create_torrent(fs)
+t.add_tracker("udp://tracker.openbittorrent.com:80/announce", 0)
+t.set_creator('libtorrent %s' % lt.version)
+t.set_comment("Test")
+lt.set_piece_hashes(t, ".")
+torrent = t.generate()    
+f = open("mytorrent.torrent", "wb")
+f.write(lt.bencode(torrent))
+f.close()
 
-    torrent_path = save_path + ".torrent"
-    with open(torrent_path, "wb") as f:
-        f.write(lt.bencode(t.generate()))
-    return torrent_path
+#Seed torrent
+ses = lt.session()
+ses.listen_on(6881, 6891)
+h = ses.add_torrent({'ti': lt.torrent_info('mytorrent.torrent'), 'save_path': '.'}) 
+# print "Total size: " + str(h.status().total_wanted)
+# print "Name: " + h.name()   
+while True:
+    # If connectio
+    s = h.status()
+    state_str = ['queued', 'checking', 'downloading metadata', \
+      'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
 
+    print('\r%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
+      (s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, s.num_peers, state_str[s.state]))
+    sys.stdout.flush()
 
-def seedTorrent(save_path):
-    torrent_path = createTorrent(save_path)
-    ses = lt.session()
-
-    info = lt.torrent_info(torrent_path)
-    h = ses.add_torrent({"ti": info, "save_path": save_path})
-
-    print("starting", h.name())
-
-    # SEND FILE
-
-    while not h.is_seed():
-        s = h.status()
-        print(s)
-        time.sleep(1)
-
-    print(h.name(), "complete")
-
-if __name__ == "__main__":
-    save_path = "/"
-    seedTorrent(save_path)
-
-
-
+    time.sleep(1)
