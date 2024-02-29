@@ -1,61 +1,13 @@
-# from hyper import HTTP20Connection
-# from dotenv import load_dotenv
-# import os
-
-# load_dotenv()
-
-# def request_and_save(connection, file_path):
-#     stream = connection.request('GET', '/' + file_path)
-#     print("Requested", file_path)
-#     # Accept stream of data from server
-#     response = connection.get_response(stream)
-#     # Data is received as a stream of chunks
-#     # Save the data to a file
-#     for chunk in response.read_chunked(decode_content=True):
-#         with open(file_path + '_', 'ab') as file:
-#             print("Received chunk")
-#             file.write(chunk)
-          
-#             # Send acknowledgement with updated flow control window to server
-#             # connection.window_manager.increment_flow_control(65536)
-
-
-
-# def make_request():
-#     # Make an HTTP/2.0 request to the server for the specified file
-#     connection = HTTP20Connection(os.getenv('COMP1_IP'), port=int(os.getenv('PORT')))
-#     print(connection)
-#     # for _ in range(1):
-#     #     print("Requesting A_10kB")
-#     #     request_and_save(connection, 'A_10kB')
-#     #     print("Received A_10kB")
-    
-#     for _ in range(1):
-#         print("Requesting A_100kB")
-#         request_and_save(connection, 'A_100kB')
-#         print("Received A_100kB")
-
-#     # for _ in range(1):
-#     #     print("Requesting A_1MB")
-#     #     request_and_save(connection, 'A_1MB')
-#     #     print("Received A_1MB")
-
-#     # for _ in range(1):
-#     #     print("Requesting A_10MB")
-#     #     request_and_save(connection, 'A_10MB')
-#     #     print("Received A_10MB")
-
-#     connection.close()
-
-# if __name__ == "__main__":
-#     make_request()
-
 import socket
 import h2.connection
 import h2.config
 import h2.events
-import socket
-import sys
+from statistics import mean, stdev
+import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class HTTPClient:
@@ -78,40 +30,88 @@ class HTTPClient:
         self.socket.sendall(self.connection.data_to_send())
 
 
-    def send_request(self, headers):
-        self.open_connection()
-        response = self.__send_request(headers, 1)
-        self.close_connection()
+    def send_request(self, file, repeat):
+        sizes = []
+        thptvalues = []
+        print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
+        print("Getting the files ....")
 
-        return response
+        for _ in range(repeat):
+            if os.path.exists(file):
+                os.remove(file)
+            start = time.time()
+            headers_to_send = [
+                (":method", "GET"),
+                (":scheme", "http"),
+                (":authority", self.SERVER_NAME),
+                (":path", "/" + file),
+                ("accept", "text/html"),
+            ]
+            stream_id = 1
+            if headers_to_send:
+                self.connection.send_headers(stream_id, headers_to_send)
+                self.socket.sendall(self.connection.data_to_send())
 
-    def __send_request(self, headers_to_send, stream_id):
-        if headers_to_send:
-            self.connection.send_headers(stream_id, headers_to_send)
-            self.socket.sendall(self.connection.data_to_send())
-
-        response_stream_ended = False
-        received_data = b""
-        while not response_stream_ended:
-            data = self.socket.recv(65536 * 1024)
-            if not data:
-                break
-
-            events = self.connection.receive_data(data)
-            for event in events:
-                if isinstance(event, h2.events.DataReceived):                    
-                    received_data += event.data
-
-                    self.connection.acknowledge_received_data(
-                        event.flow_controlled_length, event.stream_id
-                    )
-
-                if isinstance(event, h2.events.StreamEnded):
-                    response_stream_ended = True
+            response_stream_ended = False
+            header_len = 0
+            received_data = b""
+            while not response_stream_ended:
+                data = self.socket.recv(65536 * 1024)
+                if not data:
                     break
-            self.socket.sendall(self.connection.data_to_send())
 
-        return received_data
+                events = self.connection.receive_data(data)
+                for event in events:
+                    if isinstance(event, h2.events.ResponseReceived):
+                        header_len = len(event.headers)
+                    if isinstance(event, h2.events.DataReceived):                   
+                        received_data += event.data
+
+                        self.connection.acknowledge_received_data(
+                            event.flow_controlled_length, event.stream_id
+                        )
+
+                    if isinstance(event, h2.events.StreamEnded):
+                        response_stream_ended = True
+                        break
+                self.socket.sendall(self.connection.data_to_send())
+            end = time.time()
+            # Save the file
+            with open(file, "wb") as f:
+                f.write(received_data)
+            time_taken = end - start
+            if time_taken == 0:
+                time_taken = 0.0001
+            size = os.path.getsize(file)
+            thpt = size * 0.008 / time_taken
+            thptvalues.append(thpt)
+            applayersize = (header_len + size + 18)
+            sizes.append(applayersize)
+        
+        # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
+        with open(file + "_results.csv", 'w') as file:
+            file.write("RTT,Throughput,TotalDataTransfered\n")
+            for i in range(repeat):
+                file.write(str(sizes[i]) + "," + str(thptvalues[i]) + "," + str(sizes[i]) + "\n")
+
+        # Calculate average RTT, throughput and total data transfered also standard Deviation
+        # Also ensure that standard deviation is not calculated for 1 iteration
+        # Save this in dictionary and return
+                
+        results = {}
+        results["RTT"] = mean(sizes)
+        results["Throughput"] = mean(thptvalues)
+        results["TotalDataTransfered"] = mean(sizes)
+        if repeat > 1:
+            results["RTT_Std_Dev"] = stdev(sizes)
+            results["Throughput_Std_Dev"] = stdev(thptvalues)
+            results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
+        else:
+            results["RTT_Std_Dev"] = 0
+            results["Throughput_Std_Dev"] = 0
+            results["TotalDataTransfered_Std_Dev"] = 0
+        return results
+
 
     def wait_for_window_update(self):
         window_updated = False
@@ -136,15 +136,39 @@ class HTTPClient:
         self.socket.close()
 
 
-client = HTTPClient("localhost", 8000)
-headers = [
-    (":method", "GET"),
-    (":path", "/A_10MB"),
-    (":authority", "localhost"),
-    (":scheme", "https"),
-]
+if __name__ == "__main__":
+    client = HTTPClient(os.getenv("COMP1_IP"), int(os.getenv("PORT")))
+    client.open_connection()
 
-response = client.send_request(headers)
-# save the response to a file
-with open("A_100KB_", "wb") as file:
-    file.write(response)
+    # Request A_10kB file for 1000 times
+    print("Downloading A_10kB file")
+    result_A_10kB = client.send_request("A_10kB", 1000)
+    
+    # # Downlink 10kB file
+    print("Downloading A_100kB file")
+    result_A_100kB = client.send_request("A_100kB", 100)
+
+    # # Downlink 1MB file
+    print("Downloading A_1MB file")
+    result_A_1MB = client.send_request("A_1MB", 10)
+
+    # Downlink 10MB file
+    print("Downloading A_10MB file")
+    result_A_10MB = client.send_request("A_10MB", 1)
+
+    client.close_connection()
+    
+    print("\nResults for A_10KB file")
+    print(result_A_10kB)
+
+    print("\nResults for A_100KB file")
+    print(result_A_100kB)
+
+    print("\nResults for A_1MB file")
+    print(result_A_1MB)
+
+    print("\nResults for A_10MB file")
+    print(result_A_10MB)
+
+
+    

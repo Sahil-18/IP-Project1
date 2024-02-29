@@ -92,53 +92,34 @@
 import socket
 import h2.connection
 import h2.config
-import sys
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+SERVER_ADDRESS = (os.getenv('COMP1_IP'), int(os.getenv('PORT')))
+FILE_FOLDER = '../dataFiles/computer1SendFiles/'
 
 class HTTPServer:
     def __init__(self):
         """Inits the socket, start listening on 8080"""
-        print("[server]: starting..")
+        print("server starting..")
         self.sock = socket.socket()
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(("0.0.0.0", 8000))
+        self.sock.bind(SERVER_ADDRESS)
         self.sock.listen(1)
 
     def start(self):
         """Start listening to connections"""
-        print("[server]: listening for connections..")
+        print("server listening for connections..")
         while True:
             self.handle(self.sock.accept()[0])
 
     def handle(self, sock):
-        """Handle a connection to the server
-
-        Args:
-            sock (_type_): _description_
-        """
-        print("[server]: new connection")
         config = h2.config.H2Configuration(client_side=False)
         conn = h2.connection.H2Connection(config=config)
         conn.initiate_connection()
         sock.sendall(conn.data_to_send())
-
-        def wait_for_window_update():
-
-            window_updated = False
-            while not window_updated:
-                # read raw data from the self.socket
-                data = sock.recv(65536 * 1024)
-                if not data:
-                    break
-
-                # feed raw data into h2, and process resulting events
-                events = conn.receive_data(data)
-                for event in events:
-                    if isinstance(event, h2.events.WindowUpdated):
-                        window_updated = True
-
-                # send any pending data to the server
-                sock.sendall(conn.data_to_send())
 
         headers = {}
 
@@ -157,17 +138,18 @@ class HTTPServer:
                             headers["method"] = _t[1]
                         elif _t[0] == ":path":
                             headers["path"] = _t[1]
-                    print(
-                        f"[server]: headers received [{headers['method']}] [{headers['path']}]"
-                    )
+                    
+                    print("Received request for ", headers["path"])
 
                     # path is /file_name extract file_name
                     file_name = headers["path"][1:]
                     # read the file and send it
-                    with open(file_name, "rb") as file:
+                    file_path = FILE_FOLDER + file_name
+                    with open(file_path, "rb") as file:
                         response_data = file.read()
 
                     self.send_successfull_response(conn,sock, event, response_data)
+                    print("Sent response for ", headers["path"])
 
 
     def send_successfull_response(self, conn,sock, event, response_data):
@@ -180,7 +162,7 @@ class HTTPServer:
                 (":status", "200"),
                 ("server", "basic-h2-server/1.0"),
                 ("content-length", str(len(response_data))),
-                ("content-type", "application/json"),
+                ("content-type", "text/html"),
             ],
         )
         sock.sendall(conn.data_to_send())
@@ -208,5 +190,11 @@ class HTTPServer:
         sock.sendall(conn.data_to_send())
 
 
-server = HTTPServer()
-server.start()
+if __name__ == "__main__":
+    try:
+        server = HTTPServer()
+        server.start()
+    except KeyboardInterrupt:
+        server.sock.close()
+        print("Server stopped")
+        exit(0)

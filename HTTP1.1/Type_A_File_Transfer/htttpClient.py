@@ -34,7 +34,7 @@ def downloadfile(file:str, repeat: int):
         #sizes.append(len(data_received))
         
         header_size =len(rsp.headers.as_bytes())
-        #total received data = headers received(header_size)+ status line(18)
+        #total received data = header size + data size + 18 bytes
         applayersize=(header_size+size+18+len(rsp.headers))/size        
         sizes.append(applayersize)
     
