@@ -22,13 +22,19 @@ class FileTransferServicer(pb2_grpc.FileTransferServicer):
         file_path = FILE_FOLDER + filename
         try:
             print("Sending file: " + filename)
-            chunk_size = 1024*1024
+            #for key, value in context.invocation_metadata():
+             #   print("Received initial metadata: key=%s value=%s" % (key, value))
+
+            
             with open(file_path, 'rb') as file:
-                while True:
-                    content = file.read(chunk_size)
-                    if not content:
-                        break
-                    yield pb2.FileResponse(content=content)
+                content = file.read()
+                context.set_trailing_metadata(
+                (
+                    ("checksum-bin", b"I agree"),
+                    ("retry", "false"),
+                )
+                )
+                yield pb2.FileResponse(content=content)
             print("File sent successfully")
         except FileNotFoundError:
             context.set_details("File not found")
