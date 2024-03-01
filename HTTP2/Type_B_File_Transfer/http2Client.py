@@ -26,19 +26,25 @@ class HTTPClient:
         self.socket = socket.create_connection((self.SERVER_NAME, self.SERVER_PORT))
 
         self.connection = h2.connection.H2Connection()
+        self.connection.local_settings = h2.settings.Settings(
+            client=True,
+            initial_values = {h2.settings.SettingCodes.MAX_CONCURRENT_STREAMS: 2**31 -1}
+            )
         self.connection.initiate_connection()
         self.socket.sendall(self.connection.data_to_send())
 
 
     def send_request(self, file, repeat):
+        RTT =[]
         sizes = []
         thptvalues = []
         print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
         print("Getting the files ....")
 
-        for _ in range(repeat):
+        for i in range(repeat):
             if os.path.exists(file):
                 os.remove(file)
+            # self.open_connection()
             start = time.time()
             headers_to_send = [
                 (":method", "GET"),
@@ -47,7 +53,8 @@ class HTTPClient:
                 (":path", "/" + file),
                 ("accept", "text/html"),
             ]
-            stream_id = 1
+            stream_id = self.connection.get_next_available_stream_id()
+            print(f"Request {i+1} of {repeat}")
             if headers_to_send:
                 self.connection.send_headers(stream_id, headers_to_send)
                 self.socket.sendall(self.connection.data_to_send())
@@ -72,10 +79,12 @@ class HTTPClient:
                         )
 
                     if isinstance(event, h2.events.StreamEnded):
+                        event.stream_id
                         response_stream_ended = True
                         break
                 self.socket.sendall(self.connection.data_to_send())
             end = time.time()
+            # self.close_connection()
             # Save the file
             with open(file, "wb") as f:
                 f.write(received_data)
@@ -84,8 +93,9 @@ class HTTPClient:
                 time_taken = 0.0001
             size = os.path.getsize(file)
             thpt = size * 0.008 / time_taken
+            RTT.append(time_taken)
             thptvalues.append(thpt)
-            applayersize = (header_len + size + 18)
+            applayersize = (header_len + size + 18)/size
             sizes.append(applayersize)
         
         # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
@@ -99,11 +109,11 @@ class HTTPClient:
         # Save this in dictionary and return
                 
         results = {}
-        results["RTT"] = mean(sizes)
+        results["RTT"] = mean(RTT)
         results["Throughput"] = mean(thptvalues)
         results["TotalDataTransfered"] = mean(sizes)
         if repeat > 1:
-            results["RTT_Std_Dev"] = stdev(sizes)
+            results["RTT_Std_Dev"] = stdev(RTT)
             results["Throughput_Std_Dev"] = stdev(thptvalues)
             results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
         else:
@@ -137,24 +147,24 @@ class HTTPClient:
 
 
 if __name__ == "__main__":
-    client = HTTPClient(os.getenv("COMP1_IP"), int(os.getenv("PORT")))
+    client = HTTPClient(os.getenv("COMP2_IP"), int(os.getenv("PORT")))
     client.open_connection()
 
     # Request A_10kB file for 1000 times
-    print("Downloading A_10kB file")
-    result_A_10kB = client.send_request("A_10kB", 1000)
+    print("Downloading B_10kB file")
+    result_B_10kB = client.send_request("B_10kB", 1000)
     
     # # Downlink 10kB file
-    print("Downloading A_100kB file")
-    result_A_100kB = client.send_request("A_100kB", 100)
+    print("Downloading B_100kB file")
+    result_B_100kB = client.send_request("B_100kB", 100)
 
     # # Downlink 1MB file
-    print("Downloading A_1MB file")
-    result_A_1MB = client.send_request("A_1MB", 10)
+    print("Downloading B_1MB file")
+    result_B_1MB = client.send_request("B_1MB", 10)
 
     # Downlink 10MB file
-    print("Downloading A_10MB file")
-    result_A_10MB = client.send_request("A_10MB", 1)
+    print("Downloading B_10MB file")
+    result_B_10MB = client.send_request("B_10MB", 1)
 
     client.close_connection()
     

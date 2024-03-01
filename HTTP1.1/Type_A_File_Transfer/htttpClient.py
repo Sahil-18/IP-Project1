@@ -10,6 +10,7 @@ SERVER_PATH = (os.getenv("COMP1_IP"), int(os.getenv("PORT")))
 conn = http.client.HTTPConnection(SERVER_PATH)  
  
 def downloadfile(file:str, repeat: int):
+    RTT = []
     sizes = []
     thptvalues = []
     print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
@@ -31,11 +32,12 @@ def downloadfile(file:str, repeat: int):
         #throughput after each file transfer
         thpt = size * 0.008 / timetaken
         thptvalues.append(thpt)
+        RTT.append(timetaken)
         #sizes.append(len(data_received))
         
         header_size =len(rsp.headers.as_bytes())
         #total received data = header size + data size + 18 bytes
-        applayersize=(header_size+size+18+len(rsp.headers))/size        
+        applayersize=(header_size+size+18)/size       
         sizes.append(applayersize)
     
     # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
@@ -48,11 +50,11 @@ def downloadfile(file:str, repeat: int):
     # Also ensure that standard deviation is not calculated for 1 iteration
     # Save this in dictionary and return
     results = {}
-    results["RTT"] = mean(sizes)
+    results["RTT"] = mean(RTT)
     results["Throughput"] = mean(thptvalues)
     results["TotalDataTransfered"] = mean(sizes)
     if repeat > 1:
-        results["RTT_Std_Dev"] = stdev(sizes)
+        results["RTT_Std_Dev"] = stdev(RTT)
         results["Throughput_Std_Dev"] = stdev(thptvalues)
         results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
     else:
