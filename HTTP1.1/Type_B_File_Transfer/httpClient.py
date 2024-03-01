@@ -65,11 +65,11 @@ def downloadfile(file:str, repeat: int):
 if __name__ == "__main__":
     # Downlink 100 B file
     print("Downloading B_10kB file")
-    result_B_10kB = downloadfile("B_10kB", 1)
+    result_B_10kB = downloadfile("B_10kB", 10000)
     
     # # Downlink 10kB file
     print("Downloading B_100kB file")
-    result_B_100kB = downloadfile("B_100kB", 100)
+    result_B_100kB = downloadfile("B_100kB", 1000)
 
     # # Downlink 1MB file
     print("Downloading B_1MB file")

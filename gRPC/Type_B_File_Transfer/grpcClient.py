@@ -13,7 +13,7 @@ from statistics import mean, stdev
 
 load_dotenv()
 
-SERVER_PATH = os.getenv("COMP1_IP") + ":" + os.getenv("PORT")
+SERVER_PATH = os.getenv("COMP2_IP") + ":" + os.getenv("PORT")
 
 def request_file(stub, filename, iteration):
     # Find the total application layer data transferered every time the file is requested including the header and the file data
@@ -96,25 +96,25 @@ def run_client():
     stub = pb2_grpc.FileTransferStub(channel)
     
     # Request A_10kB file 1000 times
-    result_A_10kB = request_file(stub, "A_10KB", 1000)
+    result_B_10kB = request_file(stub, "B_10KB", 10000)
     # Request A_100KB file 100 times
-    result_A_100kB = request_file(stub, "A_100KB", 100)
+    result_B_100kB = request_file(stub, "B_100KB", 1000)
     # Request A_1MB file 10 times
-    result_A_1MB = request_file(stub, "A_1MB", 10)
+    result_B_1MB = request_file(stub, "B_1MB", 10)
     # Request A_10MB file 1 time
-    result_A_10MB = request_file(stub, "A_10MB", 1)
+    result_B_10MB = request_file(stub, "B_10MB", 1)
 
     print("\nResults for A_10KB file")
-    print(result_A_10kB)
+    print(result_B_10kB)
 
     print("\nResults for A_100KB file")
-    print(result_A_100kB)
+    print(result_B_100kB)
 
     print("\nResults for A_1MB file")
-    print(result_A_1MB)
+    print(result_B_1MB)
 
     print("\nResults for A_10MB file")
-    print(result_A_10MB)
+    print(result_B_10MB)
 
 if __name__ == "__main__":
     run_client()

@@ -152,11 +152,11 @@ if __name__ == "__main__":
 
     # Request A_10kB file for 1000 times
     print("Downloading B_10kB file")
-    result_B_10kB = client.send_request("B_10kB", 1000)
+    result_B_10kB = client.send_request("B_10kB", 10000)
     
     # # Downlink 10kB file
     print("Downloading B_100kB file")
-    result_B_100kB = client.send_request("B_100kB", 100)
+    result_B_100kB = client.send_request("B_100kB", 1000)
 
     # # Downlink 1MB file
     print("Downloading B_1MB file")

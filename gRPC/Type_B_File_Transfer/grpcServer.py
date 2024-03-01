@@ -12,8 +12,8 @@ from concurrent import futures
 
 load_dotenv()
 
-SERVER_ADDRESS = os.getenv("COMP1_IP") + ":" + os.getenv("PORT")
-FILE_FOLDER = os.getenv("A_FILES_LOCATION")
+SERVER_ADDRESS = os.getenv("COMP2_IP") + ":" + os.getenv("PORT")
+FILE_FOLDER = os.getenv("B_FILES_LOCATION")
 
 class FileTransferServicer(pb2_grpc.FileTransferServicer):
     def GetFile(self, request, context):
