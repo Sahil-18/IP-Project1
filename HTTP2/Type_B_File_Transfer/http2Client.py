@@ -169,16 +169,16 @@ if __name__ == "__main__":
     client.close_connection()
     
     print("\nResults for A_10KB file")
-    print(result_A_10kB)
+    print(result_B_10kB)
 
     print("\nResults for A_100KB file")
-    print(result_A_100kB)
+    print(result_B_100kB)
 
     print("\nResults for A_1MB file")
-    print(result_A_1MB)
+    print(result_B_1MB)
 
     print("\nResults for A_10MB file")
-    print(result_A_10MB)
+    print(result_B_10MB)
 
 
     
