@@ -25,26 +25,45 @@ def request_file(stub, filename, iteration):
         if os.path.exists(filename):
             os.remove(filename)
         start = time.time()
-        response = stub.GetFile(pb2.FileRequest(filename=filename))
+        response, call = stub.GetFile.with_call(pb2.FileRequest(filename=filename),metadata=(
+                ("accesstoken", "gRPC Python is great"),
+            ))
+        
+       
+        applicationlayerdata=len(str(call))
+        #print(applicationlayerdata)
+        for key, value in call.trailing_metadata():
+            print(
+                "Greeter client received trailing metadata: key=%s value=%s"
+                % (key, value)
+            )
+
         try:
             with open(filename, 'wb') as file:
-                for chunk in response:
-                    file.write(chunk.content)
+                file.write(response.content)
+                
         except FileNotFoundError:
             print("File not found")
         end = time.time()
         print("File received in time: " + str(end - start) + " seconds")
-        RTT.append(end - start)
+        timetaken =end-start
+        #print(timetaken)
         # File size in bytes
         file_size = os.path.getsize(filename)
+        
+        RTT.append(end - start)
+        #file_size =10
         # Throughput in kilo Bytes per second
         # Handle divide by zero error
         if end - start == 0:
             throughput.append(0)
         else:
-            throughput.append(file_size * 0.008 / (end - start))
+            throughput.append((file_size) * 0.001 / (end - start))
+            
         # total data transfered = header + file size
-        total_data_transfered.append((file_size + len(response.initial_metadata()) + len(response.trailing_metadata()))/file_size)
+        #print(file_size)
+        total_data_transfered.append((file_size+applicationlayerdata)/file_size)
+        
     # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
     with open(filename + "_results.csv", 'w') as file:
         file.write("RTT,Throughput,TotalDataTransfered\n")
@@ -69,7 +88,11 @@ def request_file(stub, filename, iteration):
     return results
 
 def run_client():
-    channel = grpc.insecure_channel(SERVER_PATH)
+    
+    max_message_length =  100*1024 * 1024
+    options = [('grpc.max_message_length', max_message_length),
+                   ('grpc.max_receive_message_length', max_message_length)]
+    channel = grpc.insecure_channel(SERVER_PATH, options=options)
     stub = pb2_grpc.FileTransferStub(channel)
     
     # Request A_10kB file 1000 times

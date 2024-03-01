@@ -14,7 +14,7 @@ class FileTransferStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetFile = channel.unary_stream(
+        self.GetFile = channel.unary_unary(
                 '/FileTransfer/GetFile',
                 request_serializer=gRPC__transfer__pb2.FileRequest.SerializeToString,
                 response_deserializer=gRPC__transfer__pb2.FileResponse.FromString,
@@ -59,7 +59,7 @@ class FileTransfer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/FileTransfer/GetFile',
+        return grpc.experimental.unary_unary(request, target, '/FileTransfer/GetFile',
             gRPC__transfer__pb2.FileRequest.SerializeToString,
             gRPC__transfer__pb2.FileResponse.FromString,
             options, channel_credentials,
