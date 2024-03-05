@@ -51,14 +51,13 @@ def request_file(stub, filename, iteration):
         # File size in bytes
         file_size = os.path.getsize(filename)
         
-        RTT.append(end - start)
         #file_size =10
         # Throughput in kilo Bytes per second
         # Handle divide by zero error
         if end - start == 0:
-            throughput.append(0)
-        else:
-            throughput.append((file_size) * 0.001 / (end - start))
+            timetaken = mean(RTT)
+        throughput.append((file_size) * 0.008 / timetaken)
+        RTT.append(timetaken)
             
         # total data transfered = header + file size
         #print(file_size)

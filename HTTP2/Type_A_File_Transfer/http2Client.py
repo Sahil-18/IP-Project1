@@ -90,7 +90,7 @@ class HTTPClient:
                 f.write(received_data)
             time_taken = end - start
             if time_taken == 0:
-                time_taken = 0.0001
+                time_taken = mean(RTT)
             size = os.path.getsize(file)
             thpt = size * 0.008 / time_taken
             RTT.append(time_taken)

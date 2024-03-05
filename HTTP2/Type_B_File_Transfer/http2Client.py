@@ -90,7 +90,7 @@ class HTTPClient:
                 f.write(received_data)
             time_taken = end - start
             if time_taken == 0:
-                time_taken = 0.0001
+                time_taken = mean(RTT)
             size = os.path.getsize(file)
             thpt = size * 0.008 / time_taken
             RTT.append(time_taken)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     
     # # Downlink 10kB file
     print("Downloading B_100kB file")
-    result_B_100kB = client.send_request("B_100kB", 1000)
+    result_B_100kB = client.send_request("B_100KB", 1000)
 
     # # Downlink 1MB file
     print("Downloading B_1MB file")

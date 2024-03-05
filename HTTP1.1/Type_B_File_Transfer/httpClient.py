@@ -7,9 +7,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SERVER_PATH = (os.getenv("COMP2_IP"), int(os.getenv("PORT")))
-conn = http.client.HTTPConnection(SERVER_PATH) 
+conn = http.client.HTTPConnection(SERVER_PATH[0], SERVER_PATH[1]) 
  
 def downloadfile(file:str, repeat: int):
+    RTT = []
     sizes = []
     thptvalues = []
     print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
@@ -26,9 +27,13 @@ def downloadfile(file:str, repeat: int):
         #print(rsp.status, rsp.reason)    
         data_received = rsp.read()  
         f.write(data_received)
+        f.close()
         timetaken = time.time() - start_time
         size = os.path.getsize(file)
         #throughput after each file transfer
+        if timetaken == 0:
+            timetaken = mean(RTT)
+        RTT.append(timetaken)
         thpt = size * 0.008 / timetaken
         thptvalues.append(thpt)
         #sizes.append(len(data_received))
@@ -89,7 +94,7 @@ if __name__ == "__main__":
     print("\nResults for B_1MB file")
     print(result_B_1MB)
 
-    print("\nResults for A_10MB file")
+    print("\nResults for B_10MB file")
     print(result_B_10MB)
     
     

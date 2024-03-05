@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SERVER_ADDRESS = (os.getenv('COMP2_IP'), int(os.getenv('PORT')))
+SERVER_ADDRESS = (os.getenv('COMP1_IP'), int(os.getenv('PORT')))
 FILE_FOLDER = os.getenv('B_FILES_LOCATION')
 
 class HTTPServer:

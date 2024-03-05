@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SERVER_PATH = (os.getenv("COMP1_IP"), int(os.getenv("PORT")))
-conn = http.client.HTTPConnection(SERVER_PATH)  
+conn = http.client.HTTPConnection(SERVER_PATH[0], SERVER_PATH[1])  
  
 def downloadfile(file:str, repeat: int):
     RTT = []
@@ -27,7 +27,11 @@ def downloadfile(file:str, repeat: int):
         #print(rsp.status, rsp.reason)    
         data_received = rsp.read()  
         f.write(data_received)
+        # Close the file
+        f.close()
         timetaken = time.time() - start_time
+        if timetaken == 0:
+            timetaken = mean(RTT)
         size = os.path.getsize(file)
         #throughput after each file transfer
         thpt = size * 0.008 / timetaken
@@ -67,7 +71,7 @@ def downloadfile(file:str, repeat: int):
 if __name__ == "__main__":
     # Downlink 100 B file
     print("Downloading A_10kB file")
-    result_A_10kB = downloadfile("A_10kB", 1)
+    result_A_10kB = downloadfile("A_10kB", 1000)
     
     # # Downlink 10kB file
     print("Downloading A_100kB file")
