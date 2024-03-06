@@ -1,6 +1,7 @@
 import grpc
 import os
 import sys
+import timeit
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -24,7 +25,7 @@ def request_file(stub, filename, iteration):
         print("Requesting file: " + filename + " for the " + str(i+1) + " time")
         if os.path.exists(filename):
             os.remove(filename)
-        start = time.time()
+        start = timeit.default_timer()
         response, call = stub.GetFile.with_call(pb2.FileRequest(filename=filename),metadata=(
                 ("accesstoken", "gRPC Python is great"),
             ))
@@ -44,8 +45,8 @@ def request_file(stub, filename, iteration):
                 
         except FileNotFoundError:
             print("File not found")
-        end = time.time()
-        print("File received in time: " + str(end - start) + " seconds")
+        end = timeit.default_timer()
+        #print("File received in time: " + str(end - start) + " seconds")
         timetaken =end-start
         #print(timetaken)
         # File size in bytes
@@ -56,6 +57,7 @@ def request_file(stub, filename, iteration):
         # Handle divide by zero error
         if end - start == 0:
             timetaken = mean(RTT)
+            
         throughput.append((file_size) * 0.008 / timetaken)
         RTT.append(timetaken)
             

@@ -32,7 +32,7 @@ class HTTPServer:
         sock.sendall(conn.data_to_send())
 
         headers = {}
-
+        path =[]
         while True:
             data = sock.recv(65535)
             if not data:
@@ -43,23 +43,21 @@ class HTTPServer:
 
                 # Recieve and process headers
                 if isinstance(event, h2.events.RequestReceived):
-                    for _t in event.headers:
-                        if _t[0] == ":method":
-                            headers["method"] = _t[1]
-                        elif _t[0] == ":path":
-                            headers["path"] = _t[1]
+                    for header in event.headers:
+                        if header[0].decode()==':path':
+                            path =header[1].decode()
                     
-                    print("Received request for ", headers["path"])
+                    #print("Received request for ", headers["path"])
 
                     # path is /file_name extract file_name
-                    file_name = headers["path"][1:]
+                    file_name = path[1:]
                     # read the file and send it
                     file_path = FILE_FOLDER + file_name
                     with open(file_path, "rb") as file:
                         response_data = file.read()
 
                     self.send_successfull_response(conn,sock, event, response_data)
-                    print("Sent response for ", headers["path"])
+                    #print("Sent response for ", headers["path"])
 
 
     def send_successfull_response(self, conn,sock, event, response_data):

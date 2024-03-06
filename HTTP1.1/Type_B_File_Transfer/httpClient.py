@@ -1,7 +1,7 @@
 import http.client  
 import sys  
 from statistics import mean, stdev
-import time
+import timeit
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,7 +18,7 @@ def downloadfile(file:str, repeat: int):
     for _ in range(repeat):
         if os.path.exists(file):
             os.remove(file)
-        start_time = time.time()
+        start_time = timeit.default_timer()
         conn.request("GET", file)
         #open  file to write contents 
         f = open(file, 'wb+')        
@@ -28,7 +28,7 @@ def downloadfile(file:str, repeat: int):
         data_received = rsp.read()  
         f.write(data_received)
         f.close()
-        timetaken = time.time() - start_time
+        timetaken = timeit.default_timer() - start_time
         size = os.path.getsize(file)
         #throughput after each file transfer
         if timetaken == 0:
@@ -40,7 +40,7 @@ def downloadfile(file:str, repeat: int):
         
         header_size =len(rsp.headers.as_bytes())
         #total received data = headers received(header_size)+ status line(18)
-        applayersize=(header_size+size+18+len(rsp.headers))/size        
+        applayersize=(header_size+size+18)/size       
         sizes.append(applayersize)
     
     # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
