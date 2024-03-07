@@ -1,7 +1,7 @@
 import http.client  
 import sys  
 from statistics import mean, stdev
-import time
+import timeit
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,7 +18,7 @@ def downloadfile(file:str, repeat: int):
     for _ in range(repeat):
         if os.path.exists(file):
             os.remove(file)
-        start_time = time.time()
+        start_time = timeit.default_timer()
         conn.request("GET", file)
         #open  file to write contents 
         f = open(file, 'wb+')        
@@ -29,7 +29,7 @@ def downloadfile(file:str, repeat: int):
         f.write(data_received)
         # Close the file
         f.close()
-        timetaken = time.time() - start_time
+        timetaken = timeit.default_timer() - start_time
         if timetaken == 0:
             timetaken = mean(RTT)
         size = os.path.getsize(file)

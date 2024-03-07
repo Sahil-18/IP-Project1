@@ -3,7 +3,7 @@ import h2.connection
 import h2.config
 import h2.events
 from statistics import mean, stdev
-import time
+import timeit
 import os
 from dotenv import load_dotenv
 
@@ -45,7 +45,7 @@ class HTTPClient:
             if os.path.exists(file):
                 os.remove(file)
             # self.open_connection()
-            start = time.time()
+            start = timeit.default_timer()
             headers_to_send = [
                 (":method", "GET"),
                 (":scheme", "http"),
@@ -83,7 +83,7 @@ class HTTPClient:
                         response_stream_ended = True
                         break
                 self.socket.sendall(self.connection.data_to_send())
-            end = time.time()
+            end = timeit.default_timer()
             # self.close_connection()
             # Save the file
             with open(file, "wb") as f:
