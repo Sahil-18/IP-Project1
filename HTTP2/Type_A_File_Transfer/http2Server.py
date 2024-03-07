@@ -101,10 +101,5 @@ class HTTPServer:
 
 
 if __name__ == "__main__":
-    try:
-        server = HTTPServer()
-        server.start()
-    except KeyboardInterrupt:
-        server.sock.close()
-        print("Server stopped")
-        exit(0)
+    server = HTTPServer()
+    server.start()
