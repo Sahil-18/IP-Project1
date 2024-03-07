@@ -1,5 +1,6 @@
-dotenv
+python-dotenv
 grpcio
 grpcio-tools
-http
-libtorrent
+httpx
+python-libtorrent
+timeit
