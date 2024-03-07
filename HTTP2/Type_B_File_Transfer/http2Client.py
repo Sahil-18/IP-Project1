@@ -109,17 +109,12 @@ class HTTPClient:
         # Save this in dictionary and return
                 
         results = {}
-        results["RTT"] = mean(RTT)
         results["Throughput"] = mean(thptvalues)
         results["TotalDataTransfered"] = mean(sizes)
         if repeat > 1:
-            results["RTT_Std_Dev"] = stdev(RTT)
             results["Throughput_Std_Dev"] = stdev(thptvalues)
-            results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
         else:
-            results["RTT_Std_Dev"] = 0
             results["Throughput_Std_Dev"] = 0
-            results["TotalDataTransfered_Std_Dev"] = 0
         return results
 
 
@@ -152,11 +147,11 @@ if __name__ == "__main__":
 
     # Request A_10kB file for 1000 times
     print("Downloading B_10kB file")
-    result_B_10kB = client.send_request("B_10kB", 10000)
+    result_B_10kB = client.send_request("B_10kB", 1000)
     
     # # Downlink 10kB file
     print("Downloading B_100kB file")
-    result_B_100kB = client.send_request("B_100KB", 1000)
+    result_B_100kB = client.send_request("B_100KB", 100)
 
     # # Downlink 1MB file
     print("Downloading B_1MB file")
@@ -168,16 +163,16 @@ if __name__ == "__main__":
 
     client.close_connection()
     
-    print("\nResults for A_10KB file")
+    print("\nResults for B_10KB file")
     print(result_B_10kB)
 
-    print("\nResults for A_100KB file")
+    print("\nResults for B_100KB file")
     print(result_B_100kB)
 
-    print("\nResults for A_1MB file")
+    print("\nResults for B_1MB file")
     print(result_B_1MB)
 
-    print("\nResults for A_10MB file")
+    print("\nResults for B_10MB file")
     print(result_B_10MB)
 
 

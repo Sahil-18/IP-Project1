@@ -75,17 +75,12 @@ def request_file(stub, filename, iteration):
     # Also ensure that standard deviation is not calculated for 1 iteration
     # Save this in dictionary and return
     results = {}
-    results["RTT"] = mean(RTT)
     results["Throughput"] = mean(throughput)
     results["TotalDataTransfered"] = mean(total_data_transfered)
     if iteration != 1:
-        results["RTT_Std_Dev"] = stdev(RTT)
         results["Throughput_Std_Dev"] = stdev(throughput)
-        results["TotalDataTransfered_Std_Dev"] = stdev(total_data_transfered)
     else:
-        results["RTT_Std_Dev"] = 0
         results["Throughput_Std_Dev"] = 0
-        results["TotalDataTransfered_Std_Dev"] = 0
     return results
 
 def run_client():

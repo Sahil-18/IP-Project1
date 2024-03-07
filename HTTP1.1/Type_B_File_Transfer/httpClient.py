@@ -15,9 +15,10 @@ def downloadfile(file:str, repeat: int):
     thptvalues = []
     print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
     print("Getting the files ....")
-    for _ in range(repeat):
+    for i in range(repeat):
         if os.path.exists(file):
             os.remove(file)
+        print(f"Request {i+1} for {file}")
         start_time = timeit.default_timer()
         conn.request("GET", file)
         #open  file to write contents 
@@ -53,11 +54,11 @@ def downloadfile(file:str, repeat: int):
     # Also ensure that standard deviation is not calculated for 1 iteration
     # Save this in dictionary and return
     results = {}
-    results["RTT"] = mean(sizes)
+    results["RTT"] = mean(RTT)
     results["Throughput"] = mean(thptvalues)
     results["TotalDataTransfered"] = mean(sizes)
     if repeat > 1:
-        results["RTT_Std_Dev"] = stdev(sizes)
+        results["RTT_Std_Dev"] = stdev(RTT)
         results["Throughput_Std_Dev"] = stdev(thptvalues)
         results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
     else:
@@ -70,11 +71,11 @@ def downloadfile(file:str, repeat: int):
 if __name__ == "__main__":
     # Downlink 100 B file
     print("Downloading B_10kB file")
-    result_B_10kB = downloadfile("B_10kB", 10000)
+    result_B_10kB = downloadfile("B_10kB", 1000)
     
     # # Downlink 10kB file
     print("Downloading B_100kB file")
-    result_B_100kB = downloadfile("B_100kB", 1000)
+    result_B_100kB = downloadfile("B_100kB", 100)
 
     # # Downlink 1MB file
     print("Downloading B_1MB file")

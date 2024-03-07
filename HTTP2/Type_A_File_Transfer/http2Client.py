@@ -109,17 +109,12 @@ class HTTPClient:
         # Save this in dictionary and return
                 
         results = {}
-        results["RTT"] = mean(RTT)
         results["Throughput"] = mean(thptvalues)
         results["TotalDataTransfered"] = mean(sizes)
         if repeat > 1:
-            results["RTT_Std_Dev"] = stdev(RTT)
             results["Throughput_Std_Dev"] = stdev(thptvalues)
-            results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
         else:
-            results["RTT_Std_Dev"] = 0
             results["Throughput_Std_Dev"] = 0
-            results["TotalDataTransfered_Std_Dev"] = 0
         return results
 
 

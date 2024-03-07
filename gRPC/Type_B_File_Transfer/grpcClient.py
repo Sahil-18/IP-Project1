@@ -73,17 +73,12 @@ def request_file(stub, filename, iteration):
     # Also ensure that standard deviation is not calculated for 1 iteration
     # Save this in dictionary and return
     results = {}
-    results["RTT"] = mean(RTT)
     results["Throughput"] = mean(throughput)
     results["TotalDataTransfered"] = mean(total_data_transfered)
     if iteration != 1:
-        results["RTT_Std_Dev"] = stdev(RTT)
         results["Throughput_Std_Dev"] = stdev(throughput)
-        results["TotalDataTransfered_Std_Dev"] = stdev(total_data_transfered)
     else:
-        results["RTT_Std_Dev"] = 0
         results["Throughput_Std_Dev"] = 0
-        results["TotalDataTransfered_Std_Dev"] = 0
     return results
 
 def run_client():
@@ -95,24 +90,24 @@ def run_client():
     stub = pb2_grpc.FileTransferStub(channel)
     
     # Request A_10kB file 1000 times
-    result_B_10kB = request_file(stub, "B_10KB", 10000)
+    result_B_10kB = request_file(stub, "B_10KB", 1000)
     # Request A_100KB file 100 times
-    result_B_100kB = request_file(stub, "B_100KB", 1000)
+    result_B_100kB = request_file(stub, "B_100KB", 100)
     # Request A_1MB file 10 times
     result_B_1MB = request_file(stub, "B_1MB", 10)
     # Request A_10MB file 1 time
     result_B_10MB = request_file(stub, "B_10MB", 1)
 
-    print("\nResults for A_10KB file")
+    print("\nResults for B_10KB file")
     print(result_B_10kB)
 
-    print("\nResults for A_100KB file")
+    print("\nResults for B_100KB file")
     print(result_B_100kB)
 
-    print("\nResults for A_1MB file")
+    print("\nResults for B_1MB file")
     print(result_B_1MB)
 
-    print("\nResults for A_10MB file")
+    print("\nResults for B_10MB file")
     print(result_B_10MB)
 
 if __name__ == "__main__":

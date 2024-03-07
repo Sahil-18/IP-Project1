@@ -15,7 +15,8 @@ def downloadfile(file:str, repeat: int):
     thptvalues = []
     print(f"##### Sending Request to Server for: {file} --{repeat} times #####")
     print("Getting the files ....")
-    for _ in range(repeat):
+    for i in range(repeat):
+        print(f"Request {i+1} for {file}")
         if os.path.exists(file):
             os.remove(file)
         start_time = timeit.default_timer()
@@ -54,17 +55,12 @@ def downloadfile(file:str, repeat: int):
     # Also ensure that standard deviation is not calculated for 1 iteration
     # Save this in dictionary and return
     results = {}
-    results["RTT"] = mean(RTT)
     results["Throughput"] = mean(thptvalues)
     results["TotalDataTransfered"] = mean(sizes)
     if repeat > 1:
-        results["RTT_Std_Dev"] = stdev(RTT)
         results["Throughput_Std_Dev"] = stdev(thptvalues)
-        results["TotalDataTransfered_Std_Dev"] = stdev(sizes)
     else:
-        results["RTT_Std_Dev"] = 0
         results["Throughput_Std_Dev"] = 0
-        results["TotalDataTransfered_Std_Dev"] = 0
     return results
 
 
