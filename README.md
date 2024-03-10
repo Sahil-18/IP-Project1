@@ -17,7 +17,7 @@ Project is implementation of multiple protocols to transfer files of various siz
 Project file structure is as follows:
 1. Three folders for each client-server type protocol: HTTP1.1, HTTP2.0, gRPC. Each folder contains two more folders: Type_A_File_Transfer and Type_B_File_Transfer. Each of these folders contains server and client code.
 2. BitTorrent folder contains seeder and leecher code.
-3. datFiles folder: This folde further contains two folders: computer1SendFiles and computer2ReceivedFiles. computer1SendFiles contains files to be sent (A Type Files) from computer 1 and computer2ReceivedFiles contains files to be sent (B Type Files) from computer 2.
+3. dataFiles folder: This folde further contains two folders: computer1SendFiles and computer2ReceivedFiles. computer1SendFiles contains files to be sent (A Type Files) from computer 1 and computer2ReceivedFiles contains files to be sent (B Type Files) from computer 2.
 4. .env file: This file contains the IP address and port number of the server and client for each protocol. This file is used to set the environment variables for the server and client code.
 5. README.md: This file contains the project description and file structure and instructions to run the code.
 6. requirements.txt: This file contains the list of all the dependencies required to run the code.
@@ -82,7 +82,7 @@ Project file structure is as follows:
 - Install the dependencies using the following command:
     ```
     sudo apt install libtorrent
-    sudo apt install python3-libtorrent
+    sudo apt install python-libtorrent
     ```
 - For this part, you will need 4 machines with all the code and dependencies installed.
 #### Seeder Running Instructions
