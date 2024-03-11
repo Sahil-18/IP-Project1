@@ -3,22 +3,29 @@ import sys
 import timeit
 from statistics import mean, stdev
 import os
-    
+import time
 
-def download_torrent(file_path, torrent_file,num_requests, file_size):
-    ses = lt.session()
-    ses.listen_on(7072, 7082)
+def download_torrent(file_path, torrent_file, num_requests, file_size):
+    # ses = lt.session()
+    # ses.listen_on(7072, 7082)
     RTT= []
     sizes = []
     thptvalues = []
     total_data_transfered = 0
     total_payload = 0
+    i= 0
+    flag = False
+    runs = 0
+    exit_ = False
 
-    for i in range(num_requests):
+    while True:
+        ses = lt.session()
+        ses.listen_on(7072, 7082)
         print("Requesting ", i + 1)
         if os.path.exists(file_path):
             os.remove(file_path)
-        # Add a torrent
+        
+        # # Add a torrent
         start = timeit.default_timer()
         total_data_transfered = 0
         total_payload = 0
@@ -31,12 +38,28 @@ def download_torrent(file_path, torrent_file,num_requests, file_size):
             s = h.status()
             total_data_transfered = s.total_download
             total_payload = s.total_payload_download
+            print("Status : ", s.state)
+            print("Progress : ", s.progress)
+            if s. progress !=0.0 and flag:
+                flag = True
+            if s. progress == 1.0:
+                runs += 1
+                print("Runs : ", runs)
+                flag = False
+                if runs == num_requests:
+                    print("Breaking")
+                    exit_ = True
+                    break
             #state_str = ['queued', 'checking', 'downloading metadata',
                          #'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
 
             #print('\r%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
                   #(s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, s.num_peers, state_str[s.state]))
             sys.stdout.flush()
+            time.sleep(1)
+            # if os.path.exists(file_path):
+            #     os.remove(file_path)
+        ses.post_torrent_updates()
 
         end = timeit.default_timer()
         #total_payload = s.total_payload_download
@@ -48,8 +71,14 @@ def download_torrent(file_path, torrent_file,num_requests, file_size):
         RTT.append(end-start)
         sizes.append(total_data_transfered/file_size)
         thptvalues.append(file_size*0.008/(end-start))
-        print("Completed ", i + 1, " request")
-    ses.remove_torrent(h)
+        i=i+1
+        del ses
+
+        if exit_:
+            print("Breaking while loop")
+            print("Runs : ", runs)
+            print("Num Requests : ", num_requests)
+            break
 
         # Create a csv file to store RTT, throughput and total data transfered with name as filename_results.csv
     with open(file_path + "_results.csv", 'w') as file:
@@ -75,7 +104,7 @@ file_paths = ['A_10kB', 'A_100kB', 'A_1MB', 'A_10MB']
 
 result_A_10kB = download_torrent(file_paths[0], torrent_files[0], 10, 10240)
 result_A_100kB = download_torrent(file_paths[1], torrent_files[1], 10, 102400)
-result_A_1MB = download_torrent(file_paths[2], torrent_files[2], 10,1048576)
+result_A_1MB = download_torrent(file_paths[2], torrent_files[2], 10, 1048576)
 result_A_10MB = download_torrent(file_paths[3], torrent_files[3], 1, 10485760)
 
 print("\nResults for A_10KB file")
