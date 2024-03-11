@@ -1,23 +1,9 @@
 import libtorrent as lt
 import sys
 import time
-import threading
 
-# Function to create a torrent for a given file
-def create_torrent(file_path, tracker_url):
-    print(file_path)
-    fs = lt.file_storage()
-    lt.add_files(fs, file_path)
-    
-    t = lt.create_torrent(fs)
-    t.add_tracker(tracker_url, 0)
-    t.set_creator('libtorrent %s' % lt.version)
-    t.set_comment("Test")
-    lt.set_piece_hashes(t, ".")
-    
-    return t.generate()
+torr_file = sys.argv[1]
 
-# Function to seed a torrent
 def seed_torrent(torrent_file, save_path, port):
     name = torrent_file.split(".")[0]
     ses = lt.session()
@@ -53,28 +39,4 @@ def seed_torrent(torrent_file, save_path, port):
         print("total payload : ", total_payload_transfered, name)
     
 
-# Paths to the files you want to share
-file_paths = ['A_10kB', 'A_100kB', 'A_1MB', 'A_10MB']
-# file_paths = ['A_10kB']
-
-# Tracker URL
-# tracker_url = "tcp://tracker.openbittorrent.com:80/announce"
-tracker_url = "udp://tracker.opentrackr.org:1337/announce"
-
-# Ports for each torrent
-ports = [6881, 6882, 6883, 6884]
-
-# Generate and save .torrent files for each file
-for i, file_path in enumerate(file_paths):
-    torrent_data = create_torrent(file_path, tracker_url)
-    with open(f"{file_path}.torrent", "wb") as f:
-        f.write(lt.bencode(torrent_data))
-
-# while True:
-# seed_torrent("A_10kB.torrent", ".", 6881)
-
-# Seed each torrent in a separate thread
-
-
-for i, file_path in enumerate(file_paths):
-    threading.Thread(target=seed_torrent, args=(f"{file_path}.torrent", '.', ports[i])).start()
+seed_torrent(torr_file, ".", 6881)

@@ -83,19 +83,41 @@ Project file structure is as follows:
     ```
     sudo apt install libtorrent
     sudo apt install python-libtorrent
+
     ```
+- Install a library to create a .torrent file which is shared to all the peers.
+    
+    pip3 install py3createtorrent
+
+    This will create a torrent file (eg : A_10kB.torrent) that is sent to the peers.
+
 - For this part, you will need 4 machines with all the code and dependencies installed.
+
+#### Creating Torrent Files  Instructions
+
+    The sender needs to  creates the .torrent file which will be used to send files to the peers.
+
+    CMD: py3createtorrent -t udp://tracker.opentrackr.org:1337/announce <path-to-file>
+
+    Example:
+    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce A_10kB
+    This creates a torrent file (A_10kB.torrent) that is sent to the peers.
+
 #### Seeder Running Instructions
 - On first machine (Seeder), run the seeder code using the following command:
     ```
-    python seeder.py
-    ```
-    - This will create 4 torrent files for 4 files. These torrent files needs to be copied on the leecher machines in the same folder where leecher code is present.
-    - To do this, you can terminate the seeder code, copy the torrent files and then run the seeder code again.
+    
+    - CMD: python seeder.py <path-to-torrent-file> <total-runs>
+    Example:
+    - python seeder.py A_10kB.torrent 333
+
 #### Leecher Running Instructions
 - Once the torrent files are copied and seeder is running, run the leecher using the following command:
     ```
-    python leecher.py
+    To run the peer (receiver):
+    CMD: python leecher.py <path-to-torrent-file> <total-runs>
+    Example:
+    - python leecher.py A_10kB.torrent 333
     ```
     - This will download the files from the seeder.
     - Run the leecher code on all the 3 machines to download the files from the seeder.
