@@ -83,12 +83,11 @@ Project file structure is as follows:
     ```
     sudo apt install libtorrent
     sudo apt install python-libtorrent
-
     ```
 - Install a library to create a .torrent file which is shared to all the peers.
-    
+    ```
     pip3 install py3createtorrent
-
+    ```
     This will create a torrent file (eg : A_10kB.torrent) that is sent to the peers.
 
 - For this part, you will need 4 machines with all the code and dependencies installed.
@@ -97,28 +96,34 @@ Project file structure is as follows:
 
     The sender needs to  creates the .torrent file which will be used to send files to the peers.
 
-    CMD: py3createtorrent -t udp://tracker.opentrackr.org:1337/announce <path-to-file>
+    - CMD: py3createtorrent -t udp://tracker.opentrackr.org:1337/announce <path-to-file>
 
     Example:
-    py3createtorrent -t udp://tracker.opentrackr.org:1337/announce A_10kB
+    - py3createtorrent -t udp://tracker.opentrackr.org:1337/announce A_10kB
+    
     This creates a torrent file (A_10kB.torrent) that is sent to the peers.
 
 #### Seeder Running Instructions
 - On first machine (Seeder), run the seeder code using the following command:
     ```
-    
     - CMD: python seeder.py <path-to-torrent-file> <total-runs>
     Example:
     - python seeder.py A_10kB.torrent 333
-
+    ```
 #### Leecher Running Instructions
 - Once the torrent files are copied and seeder is running, run the leecher using the following command:
     ```
     To run the peer (receiver):
-    CMD: python leecher.py <path-to-torrent-file> <total-runs>
+    - CMD: python leecher.py <path-to-torrent-file> <total-runs> <file-size in Bytes>
     Example:
-    - python leecher.py A_10kB.torrent 333
+    - python leecher.py A_10kB.torrent 333 10240
     ```
+    - File Sizes are as follows:
+        -  10kB = 10240 Bytes
+        - 100kB = 102400 Bytes
+        - 1MB = 1048576 Bytes
+        - 10MB = 10485760 Bytes
+
     - This will download the files from the seeder.
     - Run the leecher code on all the 3 machines to download the files from the seeder.
     - The leecher code will download the files and save them in the same folder where the leecher code is present.
@@ -137,3 +142,6 @@ Project file structure is as follows:
         - SA and SB are the standard deviation for Type A and Type B file transfer respectively.
     - Can use following website to calculate the mean and standard deviation: https://www.statstodo.com/CombineMeansSDs.php
 - For BitTorrent, the results are printed in the terminal and also saved in a .csv file.
+    - We were unable to get results at senders end. We were able to get results at receivers end only. So, we have results for only one end. 
+    - We used the results from three receivers to calculate the mean and standard deviation using the above formula and then multiplied the mean and standard deviation by 3 to get the final mean and standard deviation for BitTorrent.
+    - Also we faced a lot of issues running the bitTorrent code, for one seeder and one leecher it works fine but for multiple leechers it was not working properly. We had to try multiple times to get the results.
